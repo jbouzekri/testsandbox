@@ -64,8 +64,8 @@ def phpcs () {
     } catch (err) {
         setBuildStatus ("${context}", 'Some code conventions are broken', 'FAILURE')
     } finally {
-        def checkstyle = scanForIssues tool: checkStyle(pattern: 'checkstyle-result.xml')
-        publishIssues issues: [checkstyle], filters: [includePackage('io.jenkins.plugins.analysis.*')]
+        def checkstyle = scanForIssues tool: phpCodeSniffer(pattern: 'checkstyle-result.xml')
+        publishIssues issues: [php-code-sniffer], filters: [includePackage('io.jenkins.plugins.analysis.*')]
     }
 
     setBuildStatus ("${context}", 'Code conventions OK', 'SUCCESS')
