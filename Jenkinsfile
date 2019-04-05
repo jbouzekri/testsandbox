@@ -1,5 +1,15 @@
 def label = "testsandbox-${UUID.randomUUID().toString()}"
 
+def getRepoURL() {
+    sh "git config --get remote.origin.url > .git/remote-url"
+    return readFile(".git/remote-url").trim()
+}
+
+def getCommitSha() {
+    sh "git rev-parse HEAD > .git/current-commit"
+    return readFile(".git/current-commit").trim()
+}
+
 podTemplate(
     label: label,
     containers: [
@@ -16,16 +26,6 @@ podTemplate(
 
         stage('set github commit status') {
             container('git') {
-                def getRepoURL() {
-                    sh "git config --get remote.origin.url > .git/remote-url"
-                    return readFile(".git/remote-url").trim()
-                }
-
-                def getCommitSha() {
-                    sh "git rev-parse HEAD > .git/current-commit"
-                    return readFile(".git/current-commit").trim()
-                }
-
                 // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
                 repoUrl = getRepoURL()
                 commitSha = getCommitSha()
