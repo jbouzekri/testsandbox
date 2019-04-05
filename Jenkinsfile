@@ -36,7 +36,7 @@ podTemplate(
 
         stage('set github commit status') {
             container('git') {
-                git scm
+                checkout scm
                 // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
                 repoUrl = getRepoURL()
                 commitSha = getCommitSha()
