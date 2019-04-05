@@ -11,6 +11,12 @@ def getCommitSha() {
 }
 
 def setBuildStatus(String message, String state) {
+    repoUrl = getRepoURL()
+    commitSha = getCommitSha()
+
+    echo repoUrl
+    echo commitSha
+
     step([
         $class: "GitHubCommitStatusSetter",
         reposSource: [$class: "ManuallyEnteredRepositorySource", url: repoUrl],
@@ -37,9 +43,8 @@ podTemplate(
         stage('set github commit status') {
             container('git') {
                 checkout scm
+
                 // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
-                repoUrl = getRepoURL()
-                commitSha = getCommitSha()
                 setBuildStatus("Build complete", "SUCCESS")
             }
         }
