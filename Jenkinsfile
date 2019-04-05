@@ -63,6 +63,7 @@ def phpcs () {
         sh "phpcs -v --standard=PSR2 --report=xml --report-file=checkstyle-result.xml src/"
     } catch (err) {
         setBuildStatus ("${context}", 'Some code conventions are broken', 'FAILURE')
+        throw err
     } finally {
         def checkstyle = scanForIssues tool: phpCodeSniffer(pattern: 'checkstyle-result.xml')
         publishIssues issues: [php-code-sniffer], filters: [includePackage('io.jenkins.plugins.analysis.*')]
