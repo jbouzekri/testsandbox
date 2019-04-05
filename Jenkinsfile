@@ -56,19 +56,15 @@ def checkout () {
 }
 
 def phpcs () {
-    context = "continuous-integration/jenkins/checkout"
+    context = "continuous-integration/jenkins/checkstyle"
     setBuildStatus ("${context}", 'Checking coding style', 'PENDING')
-    lintTestPass = true
-    lintTestErr = false
 
     try {
-        sh "phpcs --standard=PSR2 --report=xml --report-file=/tmp/checkstyle-result.xml src/"
+        sh "phpcs -v --standard=PSR2 --report=xml --report-file=checkstyle-result.xml src/"
     } catch (err) {
         setBuildStatus ("${context}", 'Some code conventions are broken', 'FAILURE')
-        lintTestPass = false
-        throw err
     } finally {
-        def checkstyle = scanForIssues tool: checkStyle(pattern: '/tmp/checkstyle-result.xml')
+        def checkstyle = scanForIssues tool: checkStyle(pattern: 'checkstyle-result.xml')
         publishIssues issues: [checkstyle], filters: [includePackage('io.jenkins.plugins.analysis.*')]
     }
 
