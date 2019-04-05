@@ -60,7 +60,7 @@ def phpcs () {
     setBuildStatus ("${context}", 'Checking coding style', 'PENDING')
 
     try {
-        sh "phpcs -v --standard=PSR2 --report=xml --report-file=checkstyle-result.xml src/"
+        sh "phpcs -v --standard=PSR2 --report=checkstyle --report-file=checkstyle-result.xml src/"
     } catch (err) {
         setBuildStatus ("${context}", 'Some code conventions are broken', 'FAILURE')
         throw err
