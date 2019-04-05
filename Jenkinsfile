@@ -10,6 +10,16 @@ def getCommitSha() {
     return readFile(".git/current-commit").trim()
 }
 
+def setBuildStatus(String message, String state) {
+    step([
+        $class: "GitHubCommitStatusSetter",
+        reposSource: [$class: "ManuallyEnteredRepositorySource", url: repoUrl],
+        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
+        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+        statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
+    ]);
+}
+
 podTemplate(
     label: label,
     containers: [
@@ -29,17 +39,6 @@ podTemplate(
                 // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
                 repoUrl = getRepoURL()
                 commitSha = getCommitSha()
-
-                void setBuildStatus(String message, String state) {
-                    step([
-                        $class: "GitHubCommitStatusSetter",
-                        reposSource: [$class: "ManuallyEnteredRepositorySource", url: repoUrl],
-                        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
-                        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-                        statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
-                    ]);
-                }
-
                 setBuildStatus("Build complete", "SUCCESS")
             }
         }
