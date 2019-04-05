@@ -29,16 +29,13 @@ podTemplate(
 
         stage('Analysis') {
 
-            parallel {
-
-                stage('phpcs') {
+            parallel(
+                'phpcs': {
                     container('phpcs') {
                         phpcs()
-
                     }
                 }
-
-            }
+            )
 
         }
     }
