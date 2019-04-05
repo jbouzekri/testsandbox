@@ -10,21 +10,35 @@ podTemplate(
             image: 'alpine/git',
             ttyEnabled: true,
             command: 'cat',
+        ),
+        containerTemplate(
+            name: 'phpcs',
+            image: 'herloct/phpcs',
+            ttyEnabled: true,
+            command: 'cat',
         )
     ]
 ) {
 
     node(label) {
+        stages {
+            container('git') {
+                stage('Checkout code') {
+                    checkout()
+                }
+            }
 
-        container('git') {
-            checkout()
+            container('phpcs') {
+                sh "phpcs --standard=PSR2 --report=xml --report-file=/tmp/checkstyle-result.xml src/"
+
+                def checkstyle = scanForIssues tool: checkStyle(pattern: '/tmp/checkstyle-result.xml')
+                publishIssues issues: [checkstyle], filters: [includePackage('io.jenkins.plugins.analysis.*')]
+            }
         }
-
     }
 }
 
 def checkout () {
-    stage 'Checkout code'
     context = "continuous-integration/jenkins/checkout"
 
     checkout scm
@@ -35,7 +49,7 @@ def checkout () {
     echo "Detected repo url : ${repoUrl}"
     echo "Code at commit : ${commitSha}"
 
-    setBuildStatus ("${context}", 'Code checked', 'SUCCESS')
+    setBuildStatus ("${context}", 'Code checkout OK', 'SUCCESS')
 }
 
 def getRepoURL() {
