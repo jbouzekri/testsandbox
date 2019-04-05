@@ -36,6 +36,7 @@ podTemplate(
 
         stage('set github commit status') {
             container('git') {
+                sh "ls -lah"
                 // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
                 repoUrl = getRepoURL()
                 commitSha = getCommitSha()
