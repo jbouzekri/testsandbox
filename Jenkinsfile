@@ -21,19 +21,25 @@ podTemplate(
 ) {
 
     node(label) {
-        stages {
+        stage('Checkout') {
             container('git') {
-                stage('Checkout code') {
-                    checkout()
+                checkout()
+            }
+        }
+
+        stage('Analysis') {
+
+            parallel {
+
+                stage('phpcs') {
+                    container('phpcs') {
+                        phpcs()
+
+                    }
                 }
+
             }
 
-            container('phpcs') {
-                sh "phpcs --standard=PSR2 --report=xml --report-file=/tmp/checkstyle-result.xml src/"
-
-                def checkstyle = scanForIssues tool: checkStyle(pattern: '/tmp/checkstyle-result.xml')
-                publishIssues issues: [checkstyle], filters: [includePackage('io.jenkins.plugins.analysis.*')]
-            }
         }
     }
 }
@@ -52,17 +58,37 @@ def checkout () {
     setBuildStatus ("${context}", 'Code checkout OK', 'SUCCESS')
 }
 
-def getRepoURL() {
+def phpcs () {
+    context = "continuous-integration/jenkins/checkout"
+    setBuildStatus ("${context}", 'Checking coding style', 'PENDING')
+    lintTestPass = true
+    lintTestErr = false
+
+    try {
+        sh "phpcs --standard=PSR2 --report=xml --report-file=/tmp/checkstyle-result.xml src/"
+    } catch (err) {
+        setBuildStatus ("${context}", 'Some code conventions are broken', 'FAILURE')
+        lintTestPass = false
+        throw err
+    } finally {
+        def checkstyle = scanForIssues tool: checkStyle(pattern: '/tmp/checkstyle-result.xml')
+        publishIssues issues: [checkstyle], filters: [includePackage('io.jenkins.plugins.analysis.*')]
+    }
+
+    setBuildStatus ("${context}", 'Code conventions OK', 'SUCCESS')
+}
+
+def getRepoURL () {
     sh "git config --get remote.origin.url > .git/remote-url"
     return readFile(".git/remote-url").trim()
 }
 
-def getCommitSha() {
+def getCommitSha () {
     sh "git rev-parse HEAD > .git/current-commit"
     return readFile(".git/current-commit").trim()
 }
 
-void setBuildStatus(String context, String message, String state) {
+void setBuildStatus (String context, String message, String state) {
     // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
     step([
         $class: "GitHubCommitStatusSetter",
