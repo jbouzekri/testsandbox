@@ -1,30 +1,6 @@
 def label = "testsandbox-${UUID.randomUUID().toString()}"
-
-def getRepoURL() {
-    sh "git config --get remote.origin.url > .git/remote-url"
-    return readFile(".git/remote-url").trim()
-}
-
-def getCommitSha() {
-    sh "git rev-parse HEAD > .git/current-commit"
-    return readFile(".git/current-commit").trim()
-}
-
-def setBuildStatus(String message, String state) {
-    repoUrl = getRepoURL()
-    commitSha = getCommitSha()
-
-    echo repoUrl
-    echo commitSha
-
-    step([
-        $class: "GitHubCommitStatusSetter",
-        reposSource: [$class: "ManuallyEnteredRepositorySource", url: repoUrl],
-        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
-        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-        statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
-    ]);
-}
+def repoUrl
+def commitSha
 
 podTemplate(
     label: label,
@@ -40,14 +16,46 @@ podTemplate(
 
     node(label) {
 
-        stage('set github commit status') {
-            container('git') {
-                checkout scm
-
-                // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
-                setBuildStatus("Build complete", "SUCCESS")
-            }
+        container('git') {
+            checkout()
         }
 
     }
+}
+
+def checkout () {
+    stage 'Checkout code'
+    context = "continuous-integration/jenkins/checkout"
+
+    checkout scm
+
+    repoUrl = getRepoURL()
+    commitSha = getCommitSha()
+
+    echo "Detected repo url : ${repoUrl}"
+    echo "Code at commit : ${commitSha}"
+
+    setBuildStatus ("${context}", 'Code checked', 'SUCCESS')
+}
+
+def getRepoURL() {
+    sh "git config --get remote.origin.url > .git/remote-url"
+    return readFile(".git/remote-url").trim()
+}
+
+def getCommitSha() {
+    sh "git rev-parse HEAD > .git/current-commit"
+    return readFile(".git/current-commit").trim()
+}
+
+void setBuildStatus(String context, String message, String state) {
+    // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
+    step([
+        $class: "GitHubCommitStatusSetter",
+        reposSource: [$class: "ManuallyEnteredRepositorySource", url: repoUrl],
+        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
+        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
+        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+        statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
+    ]);
 }
