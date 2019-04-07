@@ -79,7 +79,7 @@ podTemplate(
                 },
                 'phpcpd': {
                     container('phpcpd') {
-                        phpmd()
+                        phpcpd()
                     }
                 }
             )
@@ -109,6 +109,7 @@ def phplint () {
 
     try {
         sh "parallel-lint --checkstyle --exclude vendor src/ > build/logs/lint-result.xml"
+        sh "cat build/logs/lint-result.xml"
     } catch (err) {
         setBuildStatus ("${context}", 'PHP syntax errors detected', 'FAILURE')
         throw err
@@ -141,10 +142,21 @@ def phpmd () {
     try {
         sh "phpmd src/ xml cleancode,codesize,controversial,design,naming,unusedcode --reportfile build/logs/pmd-result.xml"
     } catch (err) {
-
+        // don't stop build for mess detector errors
     } finally {
         def pmd = scanForIssues tool: pmdParser(pattern: 'build/logs/pmd-result.xml')
         publishIssues issues: [pmd]
+    }
+}
+
+def phpcpd () {
+    try {
+        sh "phpcpd --log-pmd build/logs/cpd-result.xml --exclude vendor . || exit 0"
+    } catch (err) {
+        // don't stop build for copy/paste detection errors
+    } finally {
+        def cpd = scanForIssues tool: pmdParser(pattern: 'build/logs/cpd-result.xml')
+        publishIssues issues: [cpd], name: 'Copy/Paste Detection'
     }
 }
 
