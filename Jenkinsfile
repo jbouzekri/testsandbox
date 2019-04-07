@@ -86,7 +86,7 @@ def phpcs () {
 
 def phpmd () {
     try {
-        sh "phpmd src/ xml --reportfile pmd-result.xml"
+        sh "phpmd src/ xml cleancode,codesize,controversial,design,naming,unusedcode --reportfile pmd-result.xml"
     } catch (err) {
 
     } finally {
