@@ -40,6 +40,12 @@ podTemplate(
 
     node(label) {
 
+        stage('Checkout') {
+            container('git') {
+                checkout()
+            }
+        }
+
         stage('Prepare') {
             container('git') {
                 sh 'rm -rf build/api'
@@ -52,12 +58,6 @@ podTemplate(
                 sh 'mkdir -p build/logs'
                 sh 'mkdir -p build/pdepend'
                 sh 'mkdir -p build/phpdox'
-            }
-        }
-
-        stage('Checkout') {
-            container('git') {
-                checkout()
             }
         }
 
