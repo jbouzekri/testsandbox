@@ -22,11 +22,39 @@ podTemplate(
             image: 'phpqa/phpmd',
             ttyEnabled: true,
             command: 'cat',
+        ),
+        containerTemplate(
+            name: 'phplint',
+            image: 'phpqa/parallel-lint',
+            ttyEnabled: true,
+            command: 'cat',
+        ),
+        containerTemplate(
+            name: 'phpcpd',
+            image: 'phpqa/phpcpd',
+            ttyEnabled: true,
+            command: 'cat',
         )
     ]
 ) {
 
     node(label) {
+
+        stage('Prepare') {
+            container('git') {
+                sh 'rm -rf build/api'
+                sh 'rm -rf build/coverage'
+                sh 'rm -rf build/logs'
+                sh 'rm -rf build/pdepend'
+                sh 'rm -rf build/phpdox'
+                sh 'mkdir -p build/api'
+                sh 'mkdir -p build/coverage'
+                sh 'mkdir -p build/logs'
+                sh 'mkdir -p build/pdepend'
+                sh 'mkdir -p build/phpdox'
+            }
+        }
+
         stage('Checkout') {
             container('git') {
                 checkout()
@@ -34,6 +62,9 @@ podTemplate(
         }
 
         stage('Analysis') {
+            container('phplint') {
+                phplint()
+            }
 
             parallel(
                 'phpcs': {
@@ -43,6 +74,11 @@ podTemplate(
                 },
                 'phpmd': {
                     container('phpmd') {
+                        phpmd()
+                    }
+                },
+                'phpcpd': {
+                    container('phpcpd') {
                         phpmd()
                     }
                 }
@@ -67,17 +103,34 @@ def checkout () {
     setBuildStatus ("${context}", 'Code checkout OK', 'SUCCESS')
 }
 
+def phplint () {
+    context = "continuous-integration/jenkins/lint"
+    setBuildStatus ("${context}", 'Checking php syntax', 'PENDING')
+
+    try {
+        sh "parallel-lint --checkstyle --exclude vendor src/ > build/logs/lint-result.xml"
+    } catch (err) {
+        setBuildStatus ("${context}", 'PHP syntax errors detected', 'FAILURE')
+        throw err
+    } finally {
+        def lint = scanForIssues tool: checkStyle(pattern: 'build/logs/checkstyle-result.xml')
+        publishIssues issues: [lint], name: 'PHP Lint'
+    }
+
+    setBuildStatus ("${context}", 'PHP syntax OK', 'SUCCESS')
+}
+
 def phpcs () {
     context = "continuous-integration/jenkins/checkstyle"
     setBuildStatus ("${context}", 'Checking coding style', 'PENDING')
 
     try {
-        sh "phpcs -v --standard=PSR2 --report=checkstyle --report-file=checkstyle-result.xml src/"
+        sh "phpcs -v --standard=PSR2 --extensions=php --ignore=vendor/ --report=checkstyle --report-file=build/logs/checkstyle-result.xml src/"
     } catch (err) {
         setBuildStatus ("${context}", 'Some code conventions are broken', 'FAILURE')
         throw err
     } finally {
-        def checkstyle = scanForIssues tool: phpCodeSniffer(pattern: 'checkstyle-result.xml')
+        def checkstyle = scanForIssues tool: phpCodeSniffer(pattern: 'build/logs/checkstyle-result.xml')
         publishIssues issues: [checkstyle]
     }
 
@@ -86,11 +139,11 @@ def phpcs () {
 
 def phpmd () {
     try {
-        sh "phpmd src/ xml cleancode,codesize,controversial,design,naming,unusedcode --reportfile pmd-result.xml"
+        sh "phpmd src/ xml cleancode,codesize,controversial,design,naming,unusedcode --reportfile build/logs/pmd-result.xml"
     } catch (err) {
 
     } finally {
-        def pmd = scanForIssues tool: pmdParser(pattern: 'pmd-result.xml')
+        def pmd = scanForIssues tool: pmdParser(pattern: 'build/logs/pmd-result.xml')
         publishIssues issues: [pmd]
     }
 }
