@@ -16,6 +16,12 @@ podTemplate(
             image: 'herloct/phpcs',
             ttyEnabled: true,
             command: 'cat',
+        ),
+        containerTemplate(
+            name: 'phpmd',
+            image: 'phpqa/phpmd',
+            ttyEnabled: true,
+            command: 'cat',
         )
     ]
 ) {
@@ -34,6 +40,11 @@ podTemplate(
                     container('phpcs') {
                         phpcs()
                     }
+                },
+                'phpmd': {
+                    container('phpmd') {
+                        phpmd()
+                    }
                 }
             )
 
@@ -46,6 +57,7 @@ def checkout () {
 
     checkout scm
 
+    // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
     repoUrl = getRepoURL()
     commitSha = getCommitSha()
 
@@ -72,6 +84,17 @@ def phpcs () {
     setBuildStatus ("${context}", 'Code conventions OK', 'SUCCESS')
 }
 
+def phpmd () {
+    try {
+        sh "phpmd src/ xml --reportfile pmd-result.xml"
+    } catch (err) {
+
+    } finally {
+        def pmd = scanForIssues tool: pmdParser(pattern: 'pmd-result.xml')
+        publishIssues issues: [pmd]
+    }
+}
+
 def getRepoURL () {
     sh "git config --get remote.origin.url > .git/remote-url"
     return readFile(".git/remote-url").trim()
@@ -83,7 +106,6 @@ def getCommitSha () {
 }
 
 void setBuildStatus (String context, String message, String state) {
-    // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
     step([
         $class: "GitHubCommitStatusSetter",
         reposSource: [$class: "ManuallyEnteredRepositorySource", url: repoUrl],
