@@ -108,13 +108,13 @@ def phplint () {
     setBuildStatus ("${context}", 'Checking php syntax', 'PENDING')
 
     try {
-        sh "parallel-lint --checkstyle --exclude vendor src/ > build/logs/lint-result.xml"
+        sh "parallel-lint--exclude vendor src/"
     } catch (err) {
         setBuildStatus ("${context}", 'PHP syntax errors detected', 'FAILURE')
         throw err
     } finally {
-        def lint = scanForIssues tool: checkStyle(pattern: 'build/logs/lint-result.xml')
-        publishIssues issues: [lint], name: 'PHP Lint'
+        //def lint = scanForIssues tool: checkStyle(pattern: 'build/logs/lint-result.xml')
+        //publishIssues issues: [lint], name: 'PHP Lint'
     }
 
     setBuildStatus ("${context}", 'PHP syntax OK', 'SUCCESS')
