@@ -113,7 +113,7 @@ def phplint () {
         setBuildStatus ("${context}", 'PHP syntax errors detected', 'FAILURE')
         throw err
     } finally {
-        def lint = scanForIssues tool: checkStyle(pattern: 'build/logs/checkstyle-result.xml')
+        def lint = scanForIssues tool: checkStyle(pattern: 'build/logs/lint-result.xml')
         publishIssues issues: [lint], name: 'PHP Lint'
     }
 
