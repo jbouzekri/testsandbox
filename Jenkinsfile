@@ -34,7 +34,13 @@ podTemplate(
             image: 'phpqa/phpcpd',
             ttyEnabled: true,
             command: 'cat',
-        )
+        ),
+        containerTemplate(
+            name: 'phploc',
+            image: 'phpqa/phploc',
+            ttyEnabled: true,
+            command: 'cat',
+        ),
     ]
 ) {
 
@@ -62,9 +68,9 @@ podTemplate(
         }
 
         stage('Analysis') {
-            container('phplint') {
+            /*container('phplint') {
                 phplint()
-            }
+            }*/
 
             parallel(
                 'phpcs': {
@@ -80,6 +86,11 @@ podTemplate(
                 'phpcpd': {
                     container('phpcpd') {
                         phpcpd()
+                    }
+                },
+                'phploc': {
+                    container('phploc') {
+                        phploc()
                     }
                 }
             )
@@ -144,21 +155,37 @@ def phpmd () {
         sh "phpmd src/ xml cleancode,codesize,controversial,design,naming,unusedcode --reportfile build/logs/pmd-result.xml"
     } catch (err) {
         // don't stop build for mess detector errors
-    } finally {
-        def pmd = scanForIssues tool: pmdParser(pattern: 'build/logs/pmd-result.xml')
-        publishIssues issues: [pmd]
     }
+
+    def pmd = scanForIssues tool: pmdParser(pattern: 'build/logs/pmd-result.xml')
+    publishIssues issues: [pmd]
 }
 
 def phpcpd () {
     try {
-        sh "phpcpd --log-pmd build/logs/cpd-result.xml --exclude vendor . || exit 0"
+        sh "phpcpd --log-pmd build/logs/cpd-result.xml --exclude vendor ."
     } catch (err) {
         // don't stop build for copy/paste detection errors
-    } finally {
-        def cpd = scanForIssues tool: pmdParser(pattern: 'build/logs/cpd-result.xml')
-        publishIssues issues: [cpd], name: 'Copy/Paste Detection'
     }
+
+    def cpd = scanForIssues tool: pmdParser(pattern: 'build/logs/cpd-result.xml')
+    publishIssues issues: [cpd], name: 'Copy/Paste Detection'
+}
+
+def phploc () {
+    try {
+        sh "phploc --count-tests --log-csv build/logs/phploc.csv --log-xml build/logs/phploc.xml src/"
+        sh "cat build/logs/phploc.csv"
+    } catch (err) {
+        // don't stop build for copy/paste detection errors
+    }
+
+
+    drawPlot (
+        'A - Lines of code',
+        'Lines of Code',
+        'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)'
+    )
 }
 
 def getRepoURL () {
@@ -180,4 +207,26 @@ void setBuildStatus (String context, String message, String state) {
         errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
         statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
     ]);
+}
+
+void drawPlot (String title, String yaxis, String exclusionValues) {
+    plot csvFileName: "${ROOT_DIR}/plot-${UUID.randomUUID().toString()}.csv",
+        csvSeries: [[
+            file: 'build/logs/phploc.csv',
+            exclusionValues: exclusionValues,
+            displayTableFlag: false,
+            inclusionFlag: 'INCLUDE_BY_STRING',
+            url: ''
+        ]],
+        group: 'phploc',
+        title: title,
+        style: 'line',
+        exclZero: false,
+        keepRecords: true,
+        logarithmic: false,
+        numBuilds: 100,
+        useDescr: false,
+        yaxis: yaxis,
+        yaxisMaximum: '',
+        yaxisMinimum: ''
 }
