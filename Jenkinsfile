@@ -184,7 +184,8 @@ def phploc () {
     drawPlot (
         'A - Lines of code',
         'Lines of Code',
-        'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)'
+        'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)',
+        ['Lines of Code (LOC)', 'Comment Lines of Code (CLOC)', 'Non-Comment Lines of Code (NCLOC)', 'Logical Lines of Code (LLOC)']
     )
 }
 
@@ -209,11 +210,12 @@ void setBuildStatus (String context, String message, String state) {
     ]);
 }
 
-void drawPlot (String title, String yaxis, String exclusionValues) {
-    plot csvFileName: "${ROOT_DIR}/plot-${UUID.randomUUID().toString()}.csv",
+void drawPlot (String title, String yaxis, String exclusionValues, String[] strExclusionSet) {
+    plot csvFileName: "plot-${UUID.randomUUID().toString()}.csv",
         csvSeries: [[
             file: 'build/logs/phploc.csv',
             exclusionValues: exclusionValues,
+            strExclusionSet: strExclusionSet,
             displayTableFlag: false,
             inclusionFlag: 'INCLUDE_BY_STRING',
             url: ''
