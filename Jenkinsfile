@@ -210,25 +210,27 @@ void setBuildStatus (String context, String message, String state) {
     ]);
 }
 
-void drawPlot (String title, String yaxis, String exclusionValues, String[] strExclusionSet) {
-    plot csvFileName: "plot-${UUID.randomUUID().toString()}.csv",
-        csvSeries: [[
-            file: 'build/logs/phploc.csv',
-            exclusionValues: exclusionValues,
-            strExclusionSet: strExclusionSet,
-            displayTableFlag: false,
-            inclusionFlag: 'INCLUDE_BY_STRING',
-            url: ''
-        ]],
-        group: 'phploc',
-        title: title,
-        style: 'line',
-        exclZero: false,
-        keepRecords: true,
-        logarithmic: false,
-        numBuilds: 100,
-        useDescr: false,
-        yaxis: yaxis,
-        yaxisMaximum: '',
-        yaxisMinimum: ''
+def drawPlot (String title, String yaxis, String exclusionValues, String[] strExclusionSet) {
+    steps {
+        plot csvFileName: "plot-${UUID.randomUUID().toString()}.csv",
+            csvSeries: [[
+                file: 'build/logs/phploc.csv',
+                exclusionValues: exclusionValues,
+                strExclusionSet: strExclusionSet,
+                displayTableFlag: false,
+                inclusionFlag: 'INCLUDE_BY_STRING',
+                url: ''
+            ]],
+            group: 'phploc',
+            title: title,
+            style: 'line',
+            exclZero: false,
+            keepRecords: true,
+            logarithmic: false,
+            numBuilds: 100,
+            useDescr: false,
+            yaxis: yaxis,
+            yaxisMaximum: '',
+            yaxisMinimum: ''
+    }
 }
