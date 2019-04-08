@@ -94,7 +94,6 @@ podTemplate(
                     }
                 }
             )
-
         }
     }
 }
@@ -237,7 +236,7 @@ void setBuildStatus (String context, String message, String state) {
 void drawPlot (String title, String yaxis, String exclusionValues, String[] strExclusionSet) {
     step ([
         $class: 'PlotBuilder',
-        csvFileName: "plot-${UUID.randomUUID().toString()}.csv",
+        csvFileName: "plot-${title}.csv",
         csvSeries: [[
             file: 'build/logs/phploc.csv',
             exclusionValues: exclusionValues,
