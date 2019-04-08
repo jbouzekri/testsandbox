@@ -167,7 +167,7 @@ def phpcpd () {
         // don't stop build for copy/paste detection errors
     }
 
-    def cpd = scanForIssues tool: pmdParser(pattern: 'build/logs/cpd-result.xml')
+    def cpd = scanForIssues tool: cpd(pattern: 'build/logs/cpd-result.xml')
     publishIssues issues: [cpd], name: 'Copy/Paste Detection'
 }
 
