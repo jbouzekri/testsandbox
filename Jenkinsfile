@@ -172,6 +172,47 @@ def phpcpd () {
     publishIssues issues: [cpd], name: 'Copy/Paste Detection'
 }
 
+def phploc () {
+    try {
+        sh "phploc --count-tests --log-csv build/logs/phploc.csv --log-xml build/logs/phploc.xml src/"
+        sh "cat build/logs/phploc.csv"
+    } catch (err) {
+        // don't stop build for copy/paste detection errors
+    }
+
+
+    /*drawPlot (
+        'A - Lines of code',
+        'Lines of Code',
+        'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)',
+        ['Lines of Code (LOC)', 'Comment Lines of Code (CLOC)', 'Non-Comment Lines of Code (NCLOC)', 'Logical Lines of Code (LLOC)']
+    )*/
+    exclusionValues = 'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)'
+    strExclusionSet = ['Lines of Code (LOC)', 'Comment Lines of Code (CLOC)', 'Non-Comment Lines of Code (NCLOC)', 'Logical Lines of Code (LLOC)']
+    title = 'A - Lines of code'
+    yaxis = 'Lines of Code'
+    plot csvFileName: "plot-${UUID.randomUUID().toString()}.csv",
+        csvSeries: [[
+            file: 'build/logs/phploc.csv',
+            exclusionValues: exclusionValues,
+            strExclusionSet: strExclusionSet,
+            displayTableFlag: false,
+            inclusionFlag: 'INCLUDE_BY_STRING',
+            url: ''
+        ]],
+        group: 'phploc',
+        title: title,
+        style: 'line',
+        exclZero: false,
+        keepRecords: true,
+        logarithmic: false,
+        numBuilds: 100,
+        useDescr: false,
+        yaxis: yaxis,
+        yaxisMaximum: '',
+        yaxisMinimum: ''
+}
+
 def getRepoURL () {
     sh "git config --get remote.origin.url > .git/remote-url"
     return readFile(".git/remote-url").trim()
@@ -214,21 +255,4 @@ void drawPlot (String title, String yaxis, String exclusionValues, String[] strE
         yaxis: yaxis,
         yaxisMaximum: '',
         yaxisMinimum: ''
-}
-
-def phploc () {
-    try {
-        sh "phploc --count-tests --log-csv build/logs/phploc.csv --log-xml build/logs/phploc.xml src/"
-        sh "cat build/logs/phploc.csv"
-    } catch (err) {
-        // don't stop build for copy/paste detection errors
-    }
-
-
-    drawPlot (
-        'A - Lines of code',
-        'Lines of Code',
-        'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)',
-        ['Lines of Code (LOC)', 'Comment Lines of Code (CLOC)', 'Non-Comment Lines of Code (NCLOC)', 'Logical Lines of Code (LLOC)']
-    )
 }
