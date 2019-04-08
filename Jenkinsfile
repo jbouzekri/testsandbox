@@ -174,42 +174,11 @@ def phpcpd () {
 def phploc () {
     try {
         sh "phploc --count-tests --log-csv build/logs/phploc.csv --log-xml build/logs/phploc.xml src/"
-        sh "cat build/logs/phploc.csv"
     } catch (err) {
         // don't stop build for copy/paste detection errors
     }
 
-
-    drawPlot (
-        'A - Lines of code',
-        'Lines of Code',
-        'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)',
-        (String[]) ['Lines of Code (LOC)', 'Comment Lines of Code (CLOC)', 'Non-Comment Lines of Code (NCLOC)', 'Logical Lines of Code (LLOC)']
-    )
-    /*exclusionValues = 'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)'
-    strExclusionSet = ['Lines of Code (LOC)', 'Comment Lines of Code (CLOC)', 'Non-Comment Lines of Code (NCLOC)', 'Logical Lines of Code (LLOC)']
-    title = 'A - Lines of code'
-    yaxis = 'Lines of Code'
-    plot csvFileName: "plot-${UUID.randomUUID().toString()}.csv",
-        csvSeries: [[
-            file: 'build/logs/phploc.csv',
-            exclusionValues: exclusionValues,
-            strExclusionSet: strExclusionSet,
-            displayTableFlag: false,
-            inclusionFlag: 'INCLUDE_BY_STRING',
-            url: ''
-        ]],
-        group: 'phploc',
-        title: title,
-        style: 'line',
-        exclZero: false,
-        keepRecords: true,
-        logarithmic: false,
-        numBuilds: 100,
-        useDescr: false,
-        yaxis: yaxis,
-        yaxisMaximum: '',
-        yaxisMinimum: ''*/
+    drawPhplocPlots ()
 }
 
 def getRepoURL () {
@@ -257,4 +226,73 @@ void drawPlot (String title, String yaxis, String exclusionValues, String[] strE
         yaxisMaximum: '',
         yaxisMinimum: ''
     ]);
+}
+
+void drawPhplocPlots () {
+    drawPlot (
+        'A - Lines of code',
+        'Lines of Code',
+        'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)',
+        (String[]) ['Lines of Code (LOC)', 'Comment Lines of Code (CLOC)', 'Non-Comment Lines of Code (NCLOC)', 'Logical Lines of Code (LLOC)']
+    )
+    drawPlot (
+        'B - Structures Containers',
+        'Count',
+        'Directories,Files,Namespaces',
+        (String[]) ['Namespaces', 'Files', 'Directories']
+    )
+    drawPlot (
+        'C - Average Length',
+        'Average Lines of Code',
+        'Average Class Length (LLOC),Average Method Length (LLOC),Average Function Length (LLOC)',
+        (String[]) ['Average Function Length (LLOC)', 'Average Method Length (LLOC)', 'Average Class Length (LLOC)']
+    )
+    drawPlot (
+        'D - Relative Cyclomatic Complexity',
+        'Cyclomatic Complexity by Structure',
+        'Cyclomatic Complexity / Lines of Code,Cyclomatic Complexity / Number of Methods',
+        (String[]) ['Cyclomatic Complexity / Lines of Code', 'Cyclomatic Complexity / Number of Methods']
+    )
+    drawPlot (
+        'E - Types of Classes',
+        'Count',
+        'Classes,Abstract Classes,Concrete Classes',
+        (String[]) ['Abstract Classes', 'Classes', 'Concrete Classes']
+    )
+    drawPlot (
+        'F - Types of Methods',
+        'Count',
+        'Methods,Non-Static Methods,Static Methods,Public Methods,Non-Public Methods',
+        (String[]) ['Methods', 'Static Methods', 'Non-Static Methods', 'Public Methods', 'Non-Public Methods']
+    )
+    drawPlot (
+        'G - Types of Constants',
+        'Count',
+        'Constants,Global Constants,Class Constants',
+        (String[]) ['Class Constants', 'Global Constants', 'Constants']
+    )
+    drawPlot (
+        'H - Types of Functions',
+        'Count',
+        'Functions,Named Functions,Anonymous Functions',
+        (String[]) ['Functions', 'Named Functions', 'Anonymous Functions']
+    )
+    drawPlot (
+        'I - Testing',
+        'Count',
+        'Test Classes,Test Methods',
+        (String[]) ['Test Classes', 'Test Methods']
+    )
+    drawPlot (
+        'AB - Code Structure by Logical Lines of Code',
+        'Logical Lines of Code',
+        'Logical Lines of Code (LLOC),Classes Length (LLOC),Functions Length (LLOC),LLOC outside functions or classes',
+        (String[]) ['Classes Length (LLOC)', 'LLOC outside functions or classes', 'Functions Length (LLOC)', 'Logical Lines of Code (LLOC)']
+    )
+    drawPlot (
+        'BB - Structure Objects',
+        'Count',
+        'Interfaces,Traits,Classes,Methods,Functions,Constants',
+        (String[]) ['Functions', 'Traits', 'Classes', 'Methods', 'Interfaces', 'Constants']
+    )
 }
