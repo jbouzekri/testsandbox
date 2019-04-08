@@ -181,13 +181,13 @@ def phploc () {
     }
 
 
-    /*drawPlot (
+    drawPlot (
         'A - Lines of code',
         'Lines of Code',
         'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)',
         ['Lines of Code (LOC)', 'Comment Lines of Code (CLOC)', 'Non-Comment Lines of Code (NCLOC)', 'Logical Lines of Code (LLOC)']
-    )*/
-    exclusionValues = 'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)'
+    )
+    /*exclusionValues = 'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)'
     strExclusionSet = ['Lines of Code (LOC)', 'Comment Lines of Code (CLOC)', 'Non-Comment Lines of Code (NCLOC)', 'Logical Lines of Code (LLOC)']
     title = 'A - Lines of code'
     yaxis = 'Lines of Code'
@@ -210,7 +210,7 @@ def phploc () {
         useDescr: false,
         yaxis: yaxis,
         yaxisMaximum: '',
-        yaxisMinimum: ''
+        yaxisMinimum: ''*/
 }
 
 def getRepoURL () {
@@ -235,7 +235,9 @@ void setBuildStatus (String context, String message, String state) {
 }
 
 void drawPlot (String title, String yaxis, String exclusionValues, String[] strExclusionSet) {
-    plot csvFileName: "plot-${UUID.randomUUID().toString()}.csv",
+    step ([
+        $class: 'PlotBuilder',
+        csvFileName: "plot-${UUID.randomUUID().toString()}.csv",
         csvSeries: [[
             file: 'build/logs/phploc.csv',
             exclusionValues: exclusionValues,
@@ -250,9 +252,10 @@ void drawPlot (String title, String yaxis, String exclusionValues, String[] strE
         exclZero: false,
         keepRecords: true,
         logarithmic: false,
-        numBuilds: 100,
+        numBuilds: '100',
         useDescr: false,
         yaxis: yaxis,
         yaxisMaximum: '',
         yaxisMinimum: ''
+    ]);
 }
