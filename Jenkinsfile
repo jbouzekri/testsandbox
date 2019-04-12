@@ -235,7 +235,7 @@ def phpunit () {
 
         step([
             $class: 'CloverPublisher',
-            cloverReportDir: 'build/logs/',
+            cloverReportDir: 'build/logs',
             cloverReportFileName: 'phpunit-coverage.xml'
         ])
     }
