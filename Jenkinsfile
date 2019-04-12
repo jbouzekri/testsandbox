@@ -222,16 +222,16 @@ def phpunit () {
     setBuildStatus ("${context}", 'Running unit tests', 'PENDING')
 
     try {
-        sh "phpcs -v --standard=PSR2 --extensions=php --ignore=vendor/ --report=checkstyle --report-file=build/logs/checkstyle-result.xml src/"
+        sh "phpunit --bootstrap vendor/autoload.php src/Tests/"
     } catch (err) {
-        setBuildStatus ("${context}", 'Some code conventions are broken', 'FAILURE')
+        setBuildStatus ("${context}", 'Unit tests failed', 'FAILURE')
         throw err
     } finally {
-        def checkstyle = scanForIssues tool: phpCodeSniffer(pattern: 'build/logs/checkstyle-result.xml')
-        publishIssues issues: [checkstyle]
+        /*def checkstyle = scanForIssues tool: phpCodeSniffer(pattern: 'build/logs/checkstyle-result.xml')
+        publishIssues issues: [checkstyle]*/
     }
 
-    setBuildStatus ("${context}", 'Code conventions OK', 'SUCCESS')
+    setBuildStatus ("${context}", 'Unit tests OK OK', 'SUCCESS')
 }
 
 def getRepoURL () {
