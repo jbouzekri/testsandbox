@@ -15,9 +15,6 @@ podTemplate(
             name: 'composer',
             image: 'composer',
             ttyEnabled: true,
-            envVars: [
-                envVar(key: 'COMPOSER_CACHE_DIR', value: '$HOME/.cache/composer'),
-            ],
             command: 'cat',
         ),
         containerTemplate(
@@ -56,9 +53,6 @@ podTemplate(
             ttyEnabled: true,
             command: 'cat',
         ),
-    ],
-    volumes: [
-        persistentVolumeClaim(mountPath: '$HOME/.cache/composer', claimName: 'jenkins-test-composer-cache')
     ]
 ) {
 
