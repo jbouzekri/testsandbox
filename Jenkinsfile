@@ -12,6 +12,15 @@ podTemplate(
             command: 'cat',
         ),
         containerTemplate(
+            name: 'composer',
+            image: 'composer',
+            ttyEnabled: true,
+            envVars: [
+                envVar(key: 'COMPOSER_CACHE_DIR', value: '$HOME/.cache/composer'),
+            ],
+            command: 'cat',
+        ),
+        containerTemplate(
             name: 'phpcs',
             image: 'herloct/phpcs',
             ttyEnabled: true,
@@ -41,6 +50,15 @@ podTemplate(
             ttyEnabled: true,
             command: 'cat',
         ),
+        containerTemplate(
+            name: 'phpunit',
+            image: 'phpunit/phpunit',
+            ttyEnabled: true,
+            command: 'cat',
+        ),
+    ],
+    volumes: [
+        persistentVolumeClaim(mountPath: '$HOME/.cache/composer', claimName: 'jenkins-test-composer-cache')
     ]
 ) {
 
@@ -54,6 +72,7 @@ podTemplate(
 
         stage('Prepare') {
             container('git') {
+                sh 'rm -rf vendor'
                 sh 'rm -rf build/api'
                 sh 'rm -rf build/coverage'
                 sh 'rm -rf build/logs'
@@ -64,6 +83,10 @@ podTemplate(
                 sh 'mkdir -p build/logs'
                 sh 'mkdir -p build/pdepend'
                 sh 'mkdir -p build/phpdox'
+            }
+
+            container('composer') {
+                composer()
             }
         }
 
@@ -92,6 +115,11 @@ podTemplate(
                     container('phploc') {
                         phploc()
                     }
+                },
+                'phpunit': {
+                    container('phpunit') {
+                        phpunit()
+                    }
                 }
             )
         }
@@ -111,6 +139,20 @@ def checkout () {
     echo "Code at commit : ${commitSha}"
 
     setBuildStatus ("${context}", 'Code checkout OK', 'SUCCESS')
+}
+
+def composer () {
+    context = "continuous-integration/jenkins/composer"
+    setBuildStatus ("${context}", 'Running composer install', 'PENDING')
+
+    try {
+        sh "composer install"
+    } catch (err) {
+        echo "${err}"
+        setBuildStatus ("${context}", 'Composer install failed', 'FAILURE')
+    }
+
+    setBuildStatus ("${context}", 'Composer install done', 'SUCCESS')
 }
 
 def phplint () {
@@ -179,6 +221,23 @@ def phploc () {
     }
 
     drawPhplocPlots ()
+}
+
+def phpunit () {
+    context = "continuous-integration/jenkins/unittest"
+    setBuildStatus ("${context}", 'Running unit tests', 'PENDING')
+
+    try {
+        sh "phpcs -v --standard=PSR2 --extensions=php --ignore=vendor/ --report=checkstyle --report-file=build/logs/checkstyle-result.xml src/"
+    } catch (err) {
+        setBuildStatus ("${context}", 'Some code conventions are broken', 'FAILURE')
+        throw err
+    } finally {
+        def checkstyle = scanForIssues tool: phpCodeSniffer(pattern: 'build/logs/checkstyle-result.xml')
+        publishIssues issues: [checkstyle]
+    }
+
+    setBuildStatus ("${context}", 'Code conventions OK', 'SUCCESS')
 }
 
 def getRepoURL () {
