@@ -222,13 +222,22 @@ def phpunit () {
     setBuildStatus ("${context}", 'Running unit tests', 'PENDING')
 
     try {
-        sh "phpunit --bootstrap vendor/autoload.php src/Tests/"
+        sh "phpunit --bootstrap vendor/autoload.php --coverage-clover build/logs/phpunit-coverage.xml --log-junit build/logs/phpunit-result.xml src/Tests/"
     } catch (err) {
         setBuildStatus ("${context}", 'Unit tests failed', 'FAILURE')
         throw err
     } finally {
-        /*def checkstyle = scanForIssues tool: phpCodeSniffer(pattern: 'build/logs/checkstyle-result.xml')
-        publishIssues issues: [checkstyle]*/
+        step([
+            $class: 'XUnitBuilder',
+            thresholds: [[$class: 'FailedThreshold', unstableThreshold: '1']],
+            tools: [[$class: 'JUnitType', pattern: 'build/logs/phpunit-result.xml']]
+        ])
+
+        step([
+            $class: 'CloverPublisher',
+            cloverReportDir: 'build/logs/',
+            cloverReportFileName: 'phpunit-coverage.xml'
+        ])
     }
 
     setBuildStatus ("${context}", 'Unit tests OK OK', 'SUCCESS')
