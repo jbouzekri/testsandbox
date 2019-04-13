@@ -222,7 +222,7 @@ def phpunit () {
     setBuildStatus ("${context}", 'Running unit tests', 'PENDING')
 
     try {
-        sh "phpunit --coverage-clover build/logs/phpunit-coverage.xml --log-junit build/logs/phpunit-result.xml tests/"
+        sh "vendor/bin/phpunit --coverage-clover build/logs/phpunit-coverage.xml --log-junit build/logs/phpunit-result.xml tests/"
     } catch (err) {
         setBuildStatus ("${context}", 'Unit tests failed', 'FAILURE')
         throw err
