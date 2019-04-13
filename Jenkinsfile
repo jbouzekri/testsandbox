@@ -49,7 +49,7 @@ podTemplate(
         ),
         containerTemplate(
             name: 'phpunit',
-            image: 'phpunit/phpunit',
+            image: 'phpunit/phpunit:7.4.0',
             ttyEnabled: true,
             command: 'cat',
         ),
