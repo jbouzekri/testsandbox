@@ -230,7 +230,7 @@ def phpunit () {
         step([
             $class: 'XUnitBuilder',
             thresholds: [[$class: 'FailedThreshold', unstableThreshold: '1']],
-            tools: [[$class: 'JUnitType', pattern: 'build/logs/phpunit-result.xml']]
+            tools: [[$class: 'PHPUnitJunitHudsonTestType', pattern: 'build/logs/phpunit-result.xml']]
         ])
 
         step([
