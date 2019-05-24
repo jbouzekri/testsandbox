@@ -328,7 +328,7 @@ def getCurrentTag () {
 
 def getCurrentBranch (tagValue) {
     if ( tagValue ) {
-        sh "git branch --contains `git rev-parse tags/${tagValue}~0` > .git/current-branch"
+        sh "git branch --contains `git rev-parse tags/${tagValue}~0` | tail -n 1 > .git/current-branch"
 
     } else {
         sh "git name-rev --name-only --always HEAD > .git/current-branch"
