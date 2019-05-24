@@ -328,7 +328,7 @@ def getCurrentTag () {
 
 def getCurrentBranch (commitShaValue) {
     // cannot use "git rev-parse --abbrev-ref HEAD" as not multibranch pipeline so we are in detached HEAD state
-    sh "git branch --contains ${commitShaValue} | cut -d' ' -f2 > .git/current-branch"
+    sh "git branch --contains ${commitShaValue} | tail -n 1 > .git/current-branch"
     return readFile(".git/current-branch").trim()
 }
 
