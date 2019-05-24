@@ -57,7 +57,7 @@ podTemplate(
         ),*/
         containerTemplate(
             name: 'docker',
-            image: 'docker:19',
+            image: 'docker:18',
             ttyEnabled: true,
             command: 'cat',
             /*envVars: [
