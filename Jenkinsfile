@@ -333,8 +333,11 @@ def getCurrentTag () {
 }
 
 def getCurrentBranch (tagValue, commitShaValue) {
+    sh "git reflog show --all | grep ${commitShaValue}"
+    sh "git branch -a --contains ${commitShaValue}"
+    sh "git name-rev ${commitShaValue}"
+    sh "git symbolic-ref --short HEAD"
     if ( tagValue ) {
-        sh "git branch -a --contains ${commitShaValue}"
         sh "git branch -a --contains ${commitShaValue} > .git/current-branch"
     } else {
         sh "git name-rev --name-only --always HEAD > .git/current-branch"
