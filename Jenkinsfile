@@ -1,6 +1,8 @@
 def label = "testsandbox-${UUID.randomUUID().toString()}"
 def repoUrl
 def commitSha
+def currentTag
+def currentBranch
 
 podTemplate(
     label: label,
@@ -52,6 +54,15 @@ podTemplate(
             image: 'phpunit/phpunit:7.4.0',
             ttyEnabled: true,
             command: 'cat',
+        ),
+        containerTemplate(
+            name: 'docker',
+            image: 'docker:19',
+            ttyEnabled: true,
+            command: 'cat',
+            /*envVars: [
+                secretEnvVar(key: 'REGISTRY_PASSWORD', secretName: 'docker-registry-secret', secretKey: 'password'),
+            ],*/
         ),
     ]
 ) {
@@ -109,16 +120,42 @@ podTemplate(
                     container('phploc') {
                         phploc()
                     }
-                },
+                }/*,
                 'phpunit': {
                     container('phpunit') {
                         phpunit()
                     }
-                }
+                }*/
             )
         }
+
+        /*stage('Build') {
+            parallel(
+                'app1': {
+                    container('docker') {
+                        buildapp1()
+                    }
+                }
+            )
+        }*/
     }
 }
+
+/*def dockerbuild_app1 () {
+    def dockerPassword = sh(
+        script: 'echo $REGISTRY_PASSWORD',
+        returnStdout: true
+    ).trim()
+
+    sh "docker login ${dockerRepository} -u ${dockerUser} -p ${dockerPassword}"
+    sh "cd api/ && docker build --tag ${dockerRepository}/${dockerWaterMetricsImage}:${version} ."
+    sh "docker push ${dockerRepository}/${dockerWaterMetricsImage}:${version}"
+}
+
+def dockerbuild (String dockerfile, String imageName, String imageVersion) {
+
+}*/
+
 
 def checkout () {
     context = "continuous-integration/jenkins/checkout"
@@ -128,9 +165,17 @@ def checkout () {
     // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
     repoUrl = getRepoURL()
     commitSha = getCommitSha()
+    currentTag = getCurrentTag()
+    currentBranch = getCurrentBranch()
 
     echo "Detected repo url : ${repoUrl}"
+    echo "Current branch : ${currentBranch}"
     echo "Code at commit : ${commitSha}"
+    if (currentTag) {
+        echo "Current tag : ${currentTag}"
+    } else {
+        echo "No tag detected on current commit"
+    }
 
     setBuildStatus ("${context}", 'Code checkout OK', 'SUCCESS')
 }
@@ -251,6 +296,18 @@ def getRepoURL () {
 def getCommitSha () {
     sh "git rev-parse HEAD > .git/current-commit"
     return readFile(".git/current-commit").trim()
+}
+
+def getCurrentTag () {
+    // add --tags if you want to consider non annoted tags too
+    sh "git describe --exact-match HEAD | head -n 1 > .git/current-tag"
+    return readFile(".git/current-tag").trim()
+}
+
+def getCurrentBranch () {
+    // add --tags if you want to consider non annoted tags too
+    sh "git rev-parse --abbrev-ref HEAD > .git/current-branch"
+    return readFile(".git/current-branch").trim()
 }
 
 void setBuildStatus (String context, String message, String state) {
