@@ -129,7 +129,7 @@ podTemplate(
             )
         }
 
-        conditionnalStage('Build', currentTag) {
+        conditionnalStage('Build', $currentTag) {
             parallel(
                 'app1': {
                     container('docker') {
