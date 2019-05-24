@@ -182,9 +182,13 @@ def dockerbuild (String dockerfile, String imageName, String imageVersion) {
 def checkout () {
     context = "continuous-integration/jenkins/checkout"
 
-    def scmVars = checkout scm
-    def branchName = scmVars.GIT_BRANCH
-    echo "jenkins git branch ${scmVars.GIT_BRANCH}"
+    checkout([
+        $class: 'GitSCM',
+        branches: scm.branches,
+        extensions: scm.extensions + [[$class: 'LocalBranch'], [$class: 'WipeWorkspace']],
+        userRemoteConfigs: scm.userRemoteConfigs,
+        doGenerateSubmoduleConfigurations: false
+    ])
 
     // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
     repoUrl = getRepoURL()
