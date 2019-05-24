@@ -188,7 +188,7 @@ def checkout () {
     repoUrl = getRepoURL()
     commitSha = getCommitSha()
     currentTag = getCurrentTag()
-    currentBranch = getCurrentBranch(commitSha)
+    currentBranch = getCurrentBranch(currentTag, commitSha)
 
     echo "Detected repo url : ${repoUrl}"
     echo "Current branch : ${currentBranch}"
@@ -326,7 +326,7 @@ def getCurrentTag () {
     return readFile(".git/current-tag").trim()
 }
 
-def getCurrentBranch (commitShaValue) {
+def getCurrentBranch (tagValue, commitShaValue) {
     if ( tagValue ) {
         sh "git ls-remote --heads origin | grep ${commitShaValue} > .git/current-branch"
     } else {
