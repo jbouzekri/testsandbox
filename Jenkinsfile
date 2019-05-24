@@ -156,14 +156,22 @@ podTemplate(
             )
         }
 
-        stage('Deploy') {
-            if ( !currentTag ) {
+        conditionnalStage('Deploy', currentTag) {
+            /*if ( !currentTag ) {
                 echo "Skipped stage \"Deploy\" : not a tagged commit"
                 Utils.markStageSkippedForConditional(STAGE_NAME)
                 return
-            }
+            }*/
+            echo "Deploy in progress ..."
         }
     }
+}
+
+def conditionnalStage(name, execute, block) {
+    return stage(name, execute ? block : {
+        echo "Skipped stage $name"
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+    })
 }
 
 /*def dockerbuild_app1 () {
