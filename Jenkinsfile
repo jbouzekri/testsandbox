@@ -141,9 +141,11 @@ podTemplate(
         //}
 
         stage('Build') {
-            echo "curretTag ${currentTag}"
-            echo "curretTag ${currentBranch}"
-            Utils.markStageSkippedForConditional(STAGE_NAME)
+            if ( !currentTag ) {
+                echo "Skipped stage \"Build\# : not a tagged commit"
+                Utils.markStageSkippedForConditional(STAGE_NAME)
+                return
+            }
 
             parallel(
                 'app1': {
