@@ -49,12 +49,12 @@ podTemplate(
             ttyEnabled: true,
             command: 'cat',
         ),
-        containerTemplate(
+        /*containerTemplate(
             name: 'phpunit',
             image: 'phpunit/phpunit:7.4.0',
             ttyEnabled: true,
             command: 'cat',
-        ),
+        ),*/
         containerTemplate(
             name: 'docker',
             image: 'docker:19',
