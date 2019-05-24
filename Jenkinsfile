@@ -305,8 +305,8 @@ def getCurrentTag () {
 }
 
 def getCurrentBranch () {
-    // add --tags if you want to consider non annoted tags too
-    sh "git rev-parse --abbrev-ref HEAD > .git/current-branch"
+    // cannot use "git rev-parse --abbrev-ref HEAD" as not multibranch pipeline so we are in detached HEAD state
+    sh "git name-rev --name-only HEAD > .git/current-branch"
     return readFile(".git/current-branch").trim()
 }
 
