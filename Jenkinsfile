@@ -182,7 +182,7 @@ def dockerbuild (String dockerfile, String imageName, String imageVersion) {
 def checkout () {
     context = "continuous-integration/jenkins/checkout"
 
-    checkout scm
+    //checkout scm
 
     // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
     repoUrl = getRepoURL()
