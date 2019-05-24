@@ -131,7 +131,7 @@ podTemplate(
             //)
         //}
 
-        conditionnalStage('Build') {
+        stage('Build') {
             echo "curretTag ${currentTag}"
             Utils.markStageSkippedForConditional(STAGE_NAME)
 
