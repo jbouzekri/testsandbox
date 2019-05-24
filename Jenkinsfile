@@ -144,8 +144,8 @@ podTemplate(
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 def conditionnalStage(name, execute, block) {
-    echo "currentTag $currentTag"
-    echo "currentTag $execute"
+    echo "currentTag ${currentTag}"
+    echo "execute ${execute}"
     return stage(name, execute ? block : {
         echo "skipped stage $name"
         Utils.markStageSkippedForConditional(STAGE_NAME)
