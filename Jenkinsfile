@@ -328,7 +328,7 @@ def getCurrentTag () {
 
 def getCurrentBranch (tagValue, commitShaValue) {
     if ( tagValue ) {
-        sh "git branch -a --contains ${commitShaValue} | grep -v HEAD > .git/current-branch"
+        sh "git branch -a --contains ${commitShaValue} > .git/current-branch"
     } else {
         sh "git name-rev --name-only --always HEAD > .git/current-branch"
     }
