@@ -142,7 +142,7 @@ podTemplate(
 
         stage('Build') {
             if ( !currentTag ) {
-                echo "Skipped stage \"Build\# : not a tagged commit"
+                echo "Skipped stage \"Build\" : not a tagged commit"
                 Utils.markStageSkippedForConditional(STAGE_NAME)
                 return
             }
@@ -154,6 +154,14 @@ podTemplate(
                     }
                 }
             )
+        }
+
+        stage('Deploy') {
+            if ( !currentTag ) {
+                echo "Skipped stage \"Deploy\" : not a tagged commit"
+                Utils.markStageSkippedForConditional(STAGE_NAME)
+                return
+            }
         }
     }
 }
