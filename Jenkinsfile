@@ -328,7 +328,7 @@ def getCurrentTag () {
 
 def getCurrentBranch (tagValue) {
     if ( tagValue ) {
-        sh "git branch --no-merge tags/${tagValue} > .git/current-branch"
+        sh "git branch --no-merge --contains tags/${tagValue} > .git/current-branch"
 
     } else {
         sh "git name-rev --name-only --always HEAD > .git/current-branch"
