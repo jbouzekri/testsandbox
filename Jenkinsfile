@@ -129,15 +129,17 @@ podTemplate(
             )
         }
 
-        /*stage('Build') {
+        stage('Build') {
+            when { currentTag }
+
             parallel(
                 'app1': {
                     container('docker') {
-                        buildapp1()
+                        echo "Building on docker container !!!!"
                     }
                 }
             )
-        }*/
+        }
     }
 }
 
