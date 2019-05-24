@@ -151,7 +151,14 @@ podTemplate(
         }
 
         conditionnalStage('Deploy', currentTag) {
-            echo "Deploy in progress ..."
+
+            conditionnalStage('Deploy-int', currentTag.contains('-dev')) {
+                echo "Deploy in progress integration ..."
+            }
+
+            conditionnalStage('Deploy-prod', !currentTag.contains('-dev')) {
+                echo "Deploy in progress production ..."
+            }
         }
     }
 }
@@ -182,22 +189,18 @@ def dockerbuild (String dockerfile, String imageName, String imageVersion) {
 def checkout () {
     context = "continuous-integration/jenkins/checkout"
 
-    checkout([
-        $class: 'GitSCM',
-        branches: scm.branches,
-        extensions: scm.extensions + [[$class: 'LocalBranch'], [$class: 'WipeWorkspace']],
-        userRemoteConfigs: scm.userRemoteConfigs,
-        doGenerateSubmoduleConfigurations: false
-    ])
+    def scmVars = checkout scm
+    def branchName = scmVars.GIT_BRANCH
 
     // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
     repoUrl = getRepoURL()
     commitSha = getCommitSha()
     currentTag = getCurrentTag()
-    currentBranch = getCurrentBranch(currentTag, commitSha)
+    //currentBranch is not available when the commit is an annoted tag
+    //currentBranch = getCurrentBranch()
 
     echo "Detected repo url : ${repoUrl}"
-    echo "Current branch : ${currentBranch}"
+    //echo "Current branch : ${currentBranch}"
     echo "Code at commit : ${commitSha}"
     if (currentTag) {
         echo "Current tag : ${currentTag}"
@@ -332,16 +335,8 @@ def getCurrentTag () {
     return readFile(".git/current-tag").trim()
 }
 
-def getCurrentBranch (tagValue, commitShaValue) {
-    sh "git reflog show --all | grep ${commitShaValue}"
-    sh "git branch -a --contains ${commitShaValue}"
-    sh "git name-rev ${commitShaValue}"
-    sh "git symbolic-ref --short HEAD"
-    if ( tagValue ) {
-        sh "git branch -a --contains ${commitShaValue} > .git/current-branch"
-    } else {
-        sh "git name-rev --name-only --always HEAD > .git/current-branch"
-    }
+def getCurrentBranch () {
+    sh "git name-rev --name-only --always HEAD > .git/current-branch"
     return readFile(".git/current-branch").trim()
 }
 
