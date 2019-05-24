@@ -140,13 +140,7 @@ podTemplate(
             //)
         //}
 
-        stage('Build') {
-            if ( !currentTag ) {
-                echo "Skipped stage \"Build\" : not a tagged commit"
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-                return
-            }
-
+        conditionnalStage('Build', currentTag) {
             parallel(
                 'app1': {
                     container('docker') {
@@ -157,11 +151,6 @@ podTemplate(
         }
 
         conditionnalStage('Deploy', currentTag) {
-            /*if ( !currentTag ) {
-                echo "Skipped stage \"Deploy\" : not a tagged commit"
-                Utils.markStageSkippedForConditional(STAGE_NAME)
-                return
-            }*/
             echo "Deploy in progress ..."
         }
     }
@@ -338,8 +327,7 @@ def getCurrentTag () {
 }
 
 def getCurrentBranch () {
-    // cannot use "git rev-parse --abbrev-ref HEAD" as not multibranch pipeline so we are in detached HEAD state
-    sh "git name-rev --name-only HEAD > .git/current-branch"
+    sh "git rev-parse --abbrev-ref HEAD > .git/current-branch"
     return readFile(".git/current-branch").trim()
 }
 
