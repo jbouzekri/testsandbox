@@ -185,10 +185,10 @@ def checkout () {
     checkout scm
 
     // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
-    repoUrl = getRepoURL ()
-    commitSha = getCommitSha ()
-    currentTag = getCurrentTag ()
-    currentBranch = getCurrentBranch (commitSha)
+    repoUrl = getRepoURL()
+    commitSha = getCommitSha()
+    currentTag = getCurrentTag()
+    currentBranch = getCurrentBranch(currentTag)
 
     echo "Detected repo url : ${repoUrl}"
     echo "Current branch : ${currentBranch}"
@@ -326,9 +326,13 @@ def getCurrentTag () {
     return readFile(".git/current-tag").trim()
 }
 
-def getCurrentBranch (commitShaValue) {
-    // cannot use "git rev-parse --abbrev-ref HEAD" as not multibranch pipeline so we are in detached HEAD state
-    sh "git branch --contains ${commitShaValue} | grep -v HEAD > .git/current-branch"
+def getCurrentBranch (tagValue) {
+    if ( tagValue ) {
+        sh "git branch --contains tags/${tagValue} | grep -v HEAD || true > .git/current-branch"
+    } else {
+        sh "git name-rev --name-only --always HEAD > .git/current-branch"
+    }
+
     return readFile(".git/current-branch").trim()
 }
 
