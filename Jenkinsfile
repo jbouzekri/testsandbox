@@ -129,9 +129,7 @@ podTemplate(
             )
         }
 
-        stage('Build') {
-            when { currentTag }
-
+        conditionnalStage('Build', currentTag) {
             parallel(
                 'app1': {
                     container('docker') {
@@ -141,6 +139,15 @@ podTemplate(
             )
         }
     }
+}
+
+import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+
+def conditionnalStage(name, execute, block) {
+    return stage(name, execute ? block : {
+        echo "skipped stage $name"
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+    })
 }
 
 /*def dockerbuild_app1 () {
