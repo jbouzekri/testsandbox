@@ -1,9 +1,18 @@
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+import groovy.transform.Field
 
 def label = "testsandbox-${UUID.randomUUID().toString()}"
+
+@Field
 def repoUrl
+
+@Field
 def commitSha
+
+@Field
 def currentTag
+
+@Field
 def currentBranch
 
 podTemplate(
@@ -133,6 +142,7 @@ podTemplate(
 
         stage('Build') {
             echo "curretTag ${currentTag}"
+            echo "curretTag ${currentBranch}"
             Utils.markStageSkippedForConditional(STAGE_NAME)
 
             parallel(
