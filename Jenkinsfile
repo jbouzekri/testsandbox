@@ -328,7 +328,7 @@ def getCurrentTag () {
 
 def getCurrentBranch (tagValue, commitShaValue) {
     if ( tagValue ) {
-        sh "git ls-remote --heads origin | grep ${commitShaValue} > .git/current-branch"
+        sh "git show-ref --head -s --abbrev | head -n1 > .git/current-branch"
     } else {
         sh "git name-rev --name-only --always HEAD > .git/current-branch"
     }
