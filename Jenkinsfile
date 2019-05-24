@@ -1,3 +1,5 @@
+import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+
 def label = "testsandbox-${UUID.randomUUID().toString()}"
 def repoUrl
 def commitSha
@@ -75,7 +77,7 @@ podTemplate(
             }
         }
 
-        stage('Prepare') {
+        /*stage('Prepare') {
             container('git') {
                 sh 'rm -rf vendor'
                 sh 'rm -rf build/api'
@@ -93,14 +95,14 @@ podTemplate(
             container('composer') {
                 composer()
             }
-        }
+        }*/
 
-        stage('Analysis') {
+        //stage('Analysis') {
             /*container('phplint') {
                 phplint()
             }*/
 
-            parallel(
+            /*parallel(
                 'phpcs': {
                     container('phpcs') {
                         phpcs()
@@ -120,16 +122,19 @@ podTemplate(
                     container('phploc') {
                         phploc()
                     }
-                }/*,
+                }*//*,
                 'phpunit': {
                     container('phpunit') {
                         phpunit()
                     }
                 }*/
-            )
-        }
+            //)
+        //}
 
-        conditionnalStage('Build', "${currentTag}") {
+        conditionnalStage('Build') {
+            echo "curretTag ${currentTag}"
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+
             parallel(
                 'app1': {
                     container('docker') {
@@ -139,17 +144,6 @@ podTemplate(
             )
         }
     }
-}
-
-import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
-
-def conditionnalStage(name, execute, block) {
-    echo "currentTag ${currentTag}"
-    echo "execute ${execute}"
-    return stage(name, execute ? block : {
-        echo "skipped stage $name"
-        Utils.markStageSkippedForConditional(STAGE_NAME)
-    })
 }
 
 /*def dockerbuild_app1 () {
