@@ -188,7 +188,7 @@ def checkout () {
     repoUrl = getRepoURL()
     commitSha = getCommitSha()
     currentTag = getCurrentTag()
-    currentBranch = getCurrentBranch(currentTag)
+    currentBranch = getCurrentBranch(commitSha)
 
     echo "Detected repo url : ${repoUrl}"
     echo "Current branch : ${currentBranch}"
@@ -326,10 +326,9 @@ def getCurrentTag () {
     return readFile(".git/current-tag").trim()
 }
 
-def getCurrentBranch (tagValue) {
-    echo "Jenkins branch name $GIT_BRANCH"
+def getCurrentBranch (commitShaValue) {
     if ( tagValue ) {
-        sh "git branch --no-merge --contains ${tagValue} > .git/current-branch"
+        sh "git ls-remote --heads origin | grep ${commitShaValue} > .git/current-branch"
     } else {
         sh "git name-rev --name-only --always HEAD > .git/current-branch"
     }
