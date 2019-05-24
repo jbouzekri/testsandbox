@@ -327,9 +327,9 @@ def getCurrentTag () {
 }
 
 def getCurrentBranch (tagValue) {
+    echo "Jenkins branch name $GIT_BRANCH"
     if ( tagValue ) {
         sh "git branch --no-merge --contains ${tagValue} > .git/current-branch"
-
     } else {
         sh "git name-rev --name-only --always HEAD > .git/current-branch"
     }
